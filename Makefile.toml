@@ -1,0 +1,30 @@
+[tasks.test]
+command = "cargo"
+args = ["test", "--all-features"]
+
+[tasks.cover]
+install_crate = "cargo-tarpaulin"
+command = "cargo"
+args = ["tarpaulin", "--ignore-tests"]
+dependencies = ["test"]
+
+[tasks.lint]
+command = "cargo"
+args = ["clippy", "--", "-D", "warnings"]
+dependencies = ["cover"]
+
+[tasks.format]
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+dependencies = ["lint"]
+
+[tasks.ga]
+dependencies = ["format"]
+command = "git"
+args = ["add", "."]
+
+[tasks.gc]
+dependencies = ["ga"]
+command = "git"
+args = ["commit", "-m", "${@}"]
+
