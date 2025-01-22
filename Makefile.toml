@@ -18,8 +18,14 @@ command = "cargo"
 args = ["fmt", "--all", "--", "--check"]
 dependencies = ["lint"]
 
-[tasks.ga]
+[tasks.auditing]
+install_crate = "cargo-audit"
+command = "cargo"
+args = ["audit"]
 dependencies = ["format"]
+
+[tasks.ga]
+dependencies = ["auditing"]
 command = "git"
 args = ["add", "."]
 
@@ -27,4 +33,9 @@ args = ["add", "."]
 dependencies = ["ga"]
 command = "git"
 args = ["commit", "-m", "${@}"]
+
+[tasks.push]
+dependencies = ["gc"]
+command = "git"
+args = ["push"]
 
