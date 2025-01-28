@@ -42,7 +42,7 @@ VALUES ($1, $2, $3, $4)
     .execute(pool)
     .await
     .map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
+        tracing::error!("Failed to execute query: {e:?}");
         e
     })?;
     Ok(())

@@ -34,5 +34,9 @@ pub fn get(file_name: &str) -> Result<Settings, config::ConfigError> {
         .add_source(config::File::with_name(file_name).required(true))
         .add_source(config::Environment::with_prefix("ZERO"))
         .build()?;
-    config.try_deserialize()
+    let mut result: Settings = config.try_deserialize()?;
+    if std::env::var("APP_ENVIRONMENT").is_ok_and(|w| w == "production") {
+        result.database.host = String::from("db")
+    }
+    Ok(result)
 }
