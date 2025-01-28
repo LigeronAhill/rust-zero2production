@@ -74,8 +74,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
         .expect("Failed to fetch saved subscription.");
     assert_eq!(saved.email, "ursula_le_guin@gmail.com");
     assert_eq!(saved.name, "le guin");
-    sqlx::query("DELETE FROM subscriptions WHERE email = $1")
-        .bind(saved.email)
+    sqlx::query!("DELETE FROM subscriptions WHERE email = $1", saved.email)
         .execute(&test_app.db_pool)
         .await
         .expect("Failed to execute request.");
