@@ -41,3 +41,15 @@ dependencies = ["gc"]
 command = "git"
 args = ["push"]
 
+[tasks.unused]
+install_crate = "cargo-udeps"
+command = "cargo"
+args = ["+nightly", "udeps"]
+
+[tasks.btest]
+env = {"TEST_LOG" = true}
+install_crate = "bunyan"
+script = """
+cargo test | bunyan
+"""
+

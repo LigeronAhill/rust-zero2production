@@ -1,0 +1,8 @@
+### POST new subscriber
+POST {{host}}:{{port}}/subscriptions
+Content-Type: application/x-www-form-urlencoded
+
+name = {{$random.name.firstName}} {{$random.name.lastName}} &
+email = {{$random.email}}
+
+###

@@ -1,0 +1,4 @@
+### GET health check
+GET {{host}}:{{port}}/health_check
+
+###
