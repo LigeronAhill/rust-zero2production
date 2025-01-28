@@ -8,6 +8,7 @@ pub struct FormData {
     name: String,
 }
 pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
+    let ts = Utc::now();
     match sqlx::query!(
         r#"
 INSERT INTO subscriptions (id, email, name, subscribed_at)
@@ -16,7 +17,7 @@ VALUES ($1, $2, $3, $4)
         uuid::Uuid::new_v4(),
         form.email,
         form.name,
-        Utc::now()
+        ts
     )
     .execute(pool.get_ref())
     .await
