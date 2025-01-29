@@ -66,11 +66,11 @@ USER appuser
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/
 COPY migrations migrations
-COPY configuration.yaml configuration.yaml
-ENV APP_ENVIRONMENT=production
+COPY configuration configuration
+ENV ZERO_ENVIRONMENT=production
 
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 3000
 
 # What the container should run when it is started.
 CMD ["/bin/server"]

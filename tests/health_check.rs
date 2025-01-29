@@ -19,10 +19,8 @@ async fn spawn_app() -> TestApp {
     let listener = std::net::TcpListener::bind("0.0.0.0:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://0.0.0.0:{port}");
-    let configuration =
-        zero2prod::configuration::get("configuration").expect("failed to fetch configuration");
-    let connection_string = configuration.database.connection_string_without_db();
-    let pool = configure_database(&connection_string).await;
+    let configuration = zero2prod::configuration::get().expect("failed to fetch configuration");
+    let pool = configure_database(&configuration.database).await;
     let server = run(listener, pool.clone()).expect("Failed to bind address");
     tokio::spawn(server);
     TestApp {
@@ -30,16 +28,15 @@ async fn spawn_app() -> TestApp {
         db_pool: pool,
     }
 }
-pub async fn configure_database(connection_string: &str) -> PgPool {
-    let mut connection = PgConnection::connect(connection_string)
+pub async fn configure_database(config: &zero2prod::configuration::DatabaseSettings) -> PgPool {
+    let mut connection = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to Postgres");
     match connection.execute("CREATE DATABASE test_newsletters").await {
-        Ok(_) => println!("Database for tests created"),
-        Err(e) => println!("Failed to create database for tests: {e:?}"),
+        Ok(_) => tracing::info!("Database for tests created"),
+        Err(e) => tracing::error!("Failed to create database for tests: {e:?}"),
     }
-    let connection_string = format!("{connection_string}/test_newsletters");
-    let pool = PgPool::connect(&connection_string)
+    let pool = PgPool::connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres");
     sqlx::migrate!("./migrations")
