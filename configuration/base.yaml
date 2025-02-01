@@ -7,3 +7,8 @@ database:
   username: "postgres"
   password: "password"
   database_name: "newsletter"
+email:
+  base_url: "localhost"
+  sender: "test@gmail.com"
+  apikey: "api-key"
+  timeout: 10000

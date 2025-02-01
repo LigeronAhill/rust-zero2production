@@ -9,10 +9,12 @@ struct Email {
     address: String,
 }
 impl SubscriberEmail {
-    pub fn parse(s: String) -> Result<SubscriberEmail, String> {
-        let res = Email { address: s.clone() };
+    pub fn parse(s: &str) -> Result<SubscriberEmail, String> {
+        let res = Email {
+            address: s.to_string(),
+        };
         match res.validate() {
-            Ok(_) => Ok(Self(s)),
+            Ok(_) => Ok(Self(s.to_string())),
             Err(_) => Err(String::from("invalid email")),
         }
     }
@@ -33,17 +35,17 @@ mod tests {
     #[test]
     fn empty_string_is_rejected() {
         let email = "".to_string();
-        assert!(SubscriberEmail::parse(email).is_err());
+        assert!(SubscriberEmail::parse(&email).is_err());
     }
     #[test]
     fn email_missing_at_symbol_is_rejected() {
         let email = "ursuladomain.com".to_string();
-        assert!(SubscriberEmail::parse(email).is_err());
+        assert!(SubscriberEmail::parse(&email).is_err());
     }
     #[test]
     fn email_missing_subject_is_rejected() {
         let email = "@domain.com".to_string();
-        assert!(SubscriberEmail::parse(email).is_err());
+        assert!(SubscriberEmail::parse(&email).is_err());
     }
 
     // #[test]
@@ -69,6 +71,6 @@ mod tests {
 
     #[quickcheck_macros::quickcheck]
     fn valid_emails_are_parsed_successfully(valid_email: ValidEmailFixture) -> bool {
-        SubscriberEmail::parse(valid_email.0).is_ok()
+        SubscriberEmail::parse(&valid_email.0).is_ok()
     }
 }

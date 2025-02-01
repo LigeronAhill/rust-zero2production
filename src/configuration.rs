@@ -7,6 +7,7 @@ use sqlx::ConnectOptions;
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub email: EmailSettings,
 }
 
 #[derive(Deserialize, Debug)]
@@ -63,4 +64,16 @@ pub fn get() -> Result<Settings, config::ConfigError> {
         )
         .build()?;
     config.try_deserialize()
+}
+#[derive(Deserialize, Debug)]
+pub struct EmailSettings {
+    pub base_url: String,
+    pub sender: String,
+    pub apikey: String,
+    pub timeout: u64,
+}
+impl EmailSettings {
+    pub fn timeout(&self) -> std::time::Duration {
+        std::time::Duration::from_millis(self.timeout)
+    }
 }
