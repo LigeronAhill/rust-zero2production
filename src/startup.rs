@@ -1,4 +1,5 @@
 use crate::configuration::{DatabaseSettings, Settings};
+use crate::domain::SubscriberEmail;
 use crate::email_client::EmailClient;
 use crate::routes::{health_check, subscribe};
 use actix_web::dev::Server;
@@ -26,7 +27,8 @@ impl Application {
 
         // Email Client
         let base_url = &configuration.email.base_url;
-        let sender = &configuration.email.sender;
+        let sender =
+            SubscriberEmail::parse(&configuration.email.sender).expect("Failed to parse sender");
         let api_key = &configuration.email.apikey;
         let timeout = configuration.email.timeout();
         let email_client = EmailClient::new(base_url, sender, api_key, timeout)

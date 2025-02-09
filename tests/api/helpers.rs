@@ -1,12 +1,14 @@
 use once_cell::sync::Lazy;
 use reqwest::Response;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
+use wiremock::MockServer;
 use zero2prod::startup::{get_connection_pool, Application};
 use zero2prod::telemetry::init_subscriber;
 
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
+    pub email_server: MockServer,
 }
 impl TestApp {
     pub async fn post_subscriptions(&self, body: String) -> Result<Response, reqwest::Error> {
@@ -27,12 +29,11 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 });
 pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
-    // let listener = std::net::TcpListener::bind("0.0.0.0:0").expect("Failed to bind random port");
-    // let port = listener.local_addr().unwrap().port();
-    // let address = format!("http://0.0.0.0:{port}");
+    let email_server = MockServer::start().await;
     let mut configuration = zero2prod::configuration::get().expect("failed to fetch configuration");
     configuration.application.port = 0;
     configuration.database.database_name = String::from("test_newsletters");
+    configuration.email.base_url = email_server.uri();
     configure_database(&configuration.database).await;
     let application = Application::build(&configuration)
         .await
@@ -42,6 +43,7 @@ pub async fn spawn_app() -> TestApp {
     TestApp {
         address,
         db_pool: get_connection_pool(&configuration.database),
+        email_server,
     }
 }
 pub async fn configure_database(config: &zero2prod::configuration::DatabaseSettings) {

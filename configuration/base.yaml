@@ -8,7 +8,7 @@ database:
   password: "password"
   database_name: "newsletter"
 email:
-  base_url: "localhost"
+  base_url: "https://api.unisender.com"
   sender: "test@gmail.com"
   apikey: "api-key"
   timeout: 10000

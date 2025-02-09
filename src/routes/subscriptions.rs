@@ -1,4 +1,7 @@
-use crate::domain::{NewSubscriber, SubscriberEmail, SubscriberName};
+use crate::{
+    domain::{NewSubscriber, SubscriberEmail, SubscriberName},
+    email_client::EmailClient,
+};
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use sqlx::PgPool;
@@ -27,10 +30,29 @@ subscriber_email = %form.email,
 subscriber_name= %form.name
     )
 )]
-pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
+pub async fn subscribe(
+    form: web::Form<FormData>,
+    pool: web::Data<PgPool>,
+    email_client: web::Data<EmailClient>,
+) -> HttpResponse {
     if let Ok(new_subscriber) = form.0.try_into() {
         match insert_subscriber(&pool, &new_subscriber).await {
-            Ok(_) => HttpResponse::Ok().finish(),
+            Ok(_) => {
+                let confirmation_link = "https://my-api.com/subscriptions/confirm";
+                let body = format!(
+                    "Click <a href=\"{confirmation_link}\">here</a> to confirm your subscription."
+                );
+                match email_client
+                    .send_email(new_subscriber.email, "Welcome", &body)
+                    .await
+                {
+                    Ok(_) => HttpResponse::Ok().finish(),
+                    Err(e) => {
+                        tracing::error!("{e:?}");
+                        HttpResponse::InternalServerError().finish()
+                    }
+                }
+            }
             Err(_) => HttpResponse::InternalServerError().finish(),
         }
     } else {
@@ -48,8 +70,8 @@ pub async fn insert_subscriber(
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
-INSERT INTO subscriptions (id, email, name, subscribed_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO subscriptions (id, email, name, subscribed_at, status)
+VALUES ($1, $2, $3, $4, 'confirmed')
 "#,
         Uuid::new_v4(),
         subscriber.email.as_ref(),
